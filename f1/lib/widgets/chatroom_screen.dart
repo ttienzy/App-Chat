@@ -7,6 +7,7 @@ class ChatRoomScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    print(user);
 
     return Scaffold(
       appBar: AppBar(
