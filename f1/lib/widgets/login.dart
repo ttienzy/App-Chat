@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:f1/services/user_services.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -16,9 +17,10 @@ class _LoginFormState extends State<LoginForm> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  final _userService = FirestoreService();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
-        '755419252191-6mkbbujpg430bmalpe4mpeqgof4vjodu.apps.googleusercontent.com', // Lấy từ Firebase Console -> Project settings -> Your apps -> Web SDK configuration
+    // serverClientId:
+    //     '755419252191-6mkbbujpg430bmalpe4mpeqgof4vjodu.apps.googleusercontent.com',
   );
 
   Future<void> _signInWithEmailPassword() async {
@@ -77,14 +79,14 @@ class _LoginFormState extends State<LoginForm> {
         idToken: googleAuth.idToken,
         accessToken: googleAuth.accessToken,
       );
-
       // Đăng nhập Firebase
       final UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
-
       // Kiểm tra đăng nhập thành công
       if (userCredential.user != null && mounted) {
+        // Lưu thông tin user vào Firestore
+        await _userService.saveUserToFirestore(userCredential.user!);
         showSuccessSnackbar('Đăng nhập thành công!');
       }
     } on PlatformException catch (e) {

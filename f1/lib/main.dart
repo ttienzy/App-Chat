@@ -34,6 +34,10 @@ class MyApp extends StatelessWidget {
       routerConfig: router,
       title: 'Chat App',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.deepPurple,
+        fontFamily: 'Roboto', // bạn có thể dùng Google Fonts hoặc font khác
+      ),
     );
   }
 }
