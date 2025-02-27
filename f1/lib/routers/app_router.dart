@@ -1,5 +1,4 @@
 import 'package:f1/screens/dashboard_screen.dart';
-import 'package:f1/widgets/chatroom_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:f1/auth/auth_notifier.dart';
@@ -28,7 +27,7 @@ GoRouter configureRouter(AuthNotifier authNotifier) {
       GoRoute(
         path: '/',
         pageBuilder:
-            (context, state) => const MaterialPage(child: ChatRoomScreen()),
+            (context, state) => const MaterialPage(child: DashboardPage()),
       ),
     ],
   );

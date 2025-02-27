@@ -1,12 +1,19 @@
 import 'package:f1/models/feature.dart';
 import 'package:f1/widgets/feature_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 /// Trang Dashboard với header gradient và danh sách chức năng theo dạng grid
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
-  final List<Feature> features = const [
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  final _user = FirebaseAuth.instance.currentUser;
+  final List<Feature> features = [
     Feature(title: 'Quản lý dự án', icon: Icons.folder_open),
     Feature(title: 'Phân công nhiệm vụ', icon: Icons.assignment_ind),
     Feature(title: 'Theo dõi tiến độ', icon: Icons.track_changes),
@@ -24,7 +31,7 @@ class DashboardPage extends StatelessWidget {
         backgroundColor: Colors.deepPurple,
         elevation: 0,
         centerTitle: true,
-        title: const Text("Project Management"),
+        title: Text(_user!.displayName ?? 'User'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -46,14 +53,14 @@ class DashboardPage extends StatelessWidget {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    "Chào mừng bạn đến",
+                    "Welcome to",
                     style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    "Quản lý dự án & làm việc nhóm",
+                    "Project management & teamwork platform",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 26,
