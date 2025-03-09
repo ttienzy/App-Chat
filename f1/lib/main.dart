@@ -1,3 +1,4 @@
+import 'package:f1/auth/projects_notifier.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:f1/auth/auth_notifier.dart';
@@ -15,8 +16,13 @@ void main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthNotifier(FirebaseAuth.instance),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthNotifier(FirebaseAuth.instance),
+        ),
+        ChangeNotifierProvider(create: (_) => ProjectProvider()),
+      ],
       child: const MyApp(),
     ),
   );

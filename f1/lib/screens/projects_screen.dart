@@ -1,33 +1,137 @@
-import 'package:f1/models/project.dart';
+import 'package:f1/auth/projects_notifier.dart';
+import 'package:f1/dialog/join_project_dialog.dart';
+import 'package:f1/screens/project_add_screen.dart';
+import 'package:f1/services/project_services.dart';
+import 'package:f1/widgets/build_project_cart.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:f1/seeds/list_projects.dart';
-import 'project_with_task_screen.dart';
+import 'package:provider/provider.dart';
 
-class ProjectManagementScreen extends StatelessWidget {
-  ProjectManagementScreen({super.key});
+class ProjectManagementScreen extends StatefulWidget {
+  const ProjectManagementScreen({super.key});
 
-  // Demo 5 dự án với thời gian bắt đầu và kết thúc
-  final List<Project> projects = ListProjects().getProjects();
+  @override
+  State<ProjectManagementScreen> createState() =>
+      _ProjectManagementScreenState();
+}
+
+class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
+  final _user = FirebaseAuth.instance.currentUser;
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final projectProvider = Provider.of<ProjectProvider>(
+      context,
+      listen: false,
+    );
+    projectProvider.listenToProjects(_user!.uid);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Lấy instance của ProjectProvider
+    final projectProvider = Provider.of<ProjectProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quản lý dự án'),
+        title:
+            _isSearching
+                ? TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập từ khóa...',
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (value) {
+                    projectProvider.listenSearchToProjects(_user!.uid, value);
+                  },
+                )
+                : const Text('Quản lý dự án'),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: () {
-              // TODO: Implement search functionality
+              setState(() {
+                if (_isSearching) {
+                  // Đóng search, clear nội dung search
+                  _isSearching = false;
+                  _searchController.clear();
+                } else {
+                  // Mở search
+                  _isSearching = true;
+                }
+              });
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.group_add),
+            onPressed: () => showJoinProjectDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () {
-              // TODO: Implement filter functionality
+              showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(
+                  100,
+                  80,
+                  0,
+                  0,
+                ), // toạ độ hiển thị
+                items: [
+                  PopupMenuItem(
+                    value: 'All',
+                    child: Row(
+                      children: [
+                        Icon(Icons.all_inbox_outlined, color: Colors.blue),
+                        SizedBox(width: 8), // Thêm khoảng cách
+                        Text('Tất cả'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'progress',
+                    child: Row(
+                      children: [
+                        Icon(Icons.percent_outlined, color: Colors.blue),
+                        SizedBox(width: 8), // Thêm khoảng cách
+                        Text('Tiến độ'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'due_date',
+                    child: Row(
+                      children: [
+                        Icon(Icons.history, color: Colors.blue),
+                        SizedBox(width: 8), // Thêm khoảng cách
+                        Text('Dự án cũ'),
+                      ],
+                    ),
+                  ),
+                ],
+              ).then((value) {
+                if (value != null) {
+                  switch (value) {
+                    case 'All':
+                      projectProvider.listenToProjects(_user!.uid);
+                      break;
+                    case 'progress':
+                      projectProvider.listenFilterPogressToProjects(_user!.uid);
+                      break;
+                    case 'due_date':
+                      projectProvider.listenFilterOldProjects(_user!.uid);
+                      break;
+                    default:
+                      break;
+                  }
+                }
+              });
             },
           ),
         ],
@@ -35,314 +139,51 @@ class ProjectManagementScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
-        onPressed: () {
-          // TODO: Create new project
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddProjectScreen()),
+          );
+          if (result != null) {
+            bool data = await addProjectServices(result, _user!.uid);
+            if (!data) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Có lỗi xảy ra khi thêm project.'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
         },
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.deepPurple.shade50, Colors.white],
-          ),
-        ),
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16.0),
-          itemCount: projects.length,
-          itemBuilder: (context, index) {
-            final project = projects[index];
-            return _buildProjectCard(project, context);
-          },
-        ),
-      ),
+      body: _buildBody(projectProvider),
     );
   }
 
-  // Widget riêng để hiển thị từng dự án
-  Widget _buildProjectCard(Project project, BuildContext context) {
-    // Định dạng date
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    final startDateStr = dateFormat.format(project.startDate);
-    final endDateStr = dateFormat.format(project.endDate);
-
-    // Tính số ngày còn lại
-    final daysRemaining = project.endDate.difference(DateTime.now()).inDays;
-
-    // Xác định màu sắc dựa vào trạng thái
-    Color statusColor;
-    String statusText;
-    switch (project.status) {
-      case 'completed':
-        statusColor = Colors.green;
-        statusText = 'Hoàn thành';
-        break;
-      case 'delayed':
-        statusColor = Colors.orange;
-        statusText = 'Chậm tiến độ';
-        break;
-      case 'ongoing':
-      default:
-        statusColor = Colors.blue;
-        statusText = 'Đang thực hiện';
+  Widget _buildBody(ProjectProvider projectProvider) {
+    if (projectProvider.isLoading) {
+      // Hiển thị vòng xoay khi đang tải
+      return Center(child: CircularProgressIndicator());
     }
+    if (projectProvider.error != null) {
+      // Hiển thị lỗi nếu có
+      return Center(child: Text("Error: ${projectProvider.error}"));
+    }
+    if (projectProvider.projects.isEmpty) {
+      return const Center(child: Text('Không có dự án nào'));
+    }
+    // Nếu không loading và không lỗi, hiển thị danh sách
+    final projects = projectProvider.projects;
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 6,
-      shadowColor: Colors.black26,
-      margin: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Phần tiêu đề (header) của Card
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 16.0,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.deepPurple, Colors.deepPurple.shade700],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Tên dự án
-                Expanded(
-                  child: Text(
-                    project.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // Badge trạng thái
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Phần nội dung (body) của Card
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Thông tin thời gian và thành viên
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$startDateStr - $endDateStr',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Icon(Icons.people, size: 16, color: Colors.grey.shade600),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${project.membersCount}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Mô tả
-                Text(project.description, style: const TextStyle(fontSize: 15)),
-                const SizedBox(height: 16),
-
-                // Hiển thị số ngày còn lại
-                if (project.status != 'completed')
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          daysRemaining < 7
-                              ? Colors.red.shade50
-                              : Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color:
-                            daysRemaining < 7
-                                ? Colors.red.shade200
-                                : Colors.blue.shade200,
-                      ),
-                    ),
-                    child: Text(
-                      daysRemaining > 0
-                          ? 'Còn $daysRemaining ngày'
-                          : 'Quá hạn ${-daysRemaining} ngày',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color:
-                            daysRemaining < 7
-                                ? Colors.red.shade700
-                                : Colors.blue.shade700,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 16),
-
-                // Tiến độ label và phần trăm
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tiến độ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                    Text(
-                      '${(project.progress * 100).toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: _getProgressColor(project.progress),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Thanh tiến độ cải tiến (đã sửa không sử dụng MediaQuery để tránh tràn viền)
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final maxWidth = constraints.maxWidth;
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Stack(
-                        children: [
-                          // Background của progress bar
-                          Container(
-                            height: 10,
-                            width: maxWidth,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          // Foreground của progress bar
-                          Container(
-                            height: 10,
-                            width: maxWidth * project.progress,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  _getProgressColor(
-                                    project.progress,
-                                  ).withOpacity(0.8),
-                                  _getProgressColor(project.progress),
-                                ],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Nút hành động
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        // TODO: Implement task view
-                      },
-                      icon: const Icon(Icons.task_alt, size: 16),
-                      label: const Text('Nhiệm vụ'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.deepPurple,
-                        side: const BorderSide(color: Colors.deepPurple),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TaskAssignmentScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.visibility, size: 16),
-                      label: const Text('Xem tiến độ'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: projects.length,
+      itemBuilder: (context, index) {
+        final project = projects[index];
+        print(project.idProject);
+        return buildProjectCard(project, context);
+      },
     );
-  }
-
-  // Hàm trả về màu dựa vào giá trị tiến độ
-  Color _getProgressColor(double progress) {
-    if (progress < 0.3) return Colors.red;
-    if (progress < 0.7) return Colors.orange;
-    return Colors.green;
   }
 }

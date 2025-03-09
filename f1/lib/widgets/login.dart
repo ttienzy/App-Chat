@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:f1/services/user_services.dart';
+import 'package:f1/repositories/user_repository.dart';
 import 'package:f1/widgets/register_account.dart';
 
 class LoginForm extends StatefulWidget {
