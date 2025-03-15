@@ -95,3 +95,43 @@ Future<void> addToMember(String projectId, List<String> newMembers) async {
     {'members': newMembers},
   );
 }
+
+Future<void> updateProjectAttributes({
+  required String projectId,
+  String? name,
+  String? description,
+  DateTime? startDate,
+  DateTime? endDate,
+  double? progress,
+  String? status,
+}) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .doc(projectId)
+        .update({
+          if (name != null) 'name_p': name,
+          if (description != null) 'desc_p': description,
+          if (startDate != null) 'start_date': startDate,
+          if (endDate != null) 'end_date': endDate,
+          if (progress != null) 'progress_p': progress,
+          if (status != null) 'status': status,
+        });
+    print('Cập nhật thành công');
+  } catch (e) {
+    print('Lỗi khi cập nhật: $e');
+  }
+}
+
+Future<void> deleteProject({required String projectId}) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('projects')
+        .doc(projectId)
+        .delete();
+    print('Đã xóa dự án thành công');
+  } catch (e) {
+    print('Lỗi khi xóa dự án: $e');
+    throw e; // Ném lỗi để có thể xử lý ở nơi gọi hàm nếu cần
+  }
+}

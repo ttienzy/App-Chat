@@ -23,11 +23,13 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
   @override
   void initState() {
     super.initState();
-    final projectProvider = Provider.of<ProjectProvider>(
-      context,
-      listen: false,
-    );
-    projectProvider.listenToProjects(_user!.uid);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final projectProvider = Provider.of<ProjectProvider>(
+        context,
+        listen: false,
+      );
+      projectProvider.listenToProjects(_user!.uid);
+    });
   }
 
   @override

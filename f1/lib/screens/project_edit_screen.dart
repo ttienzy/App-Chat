@@ -1,4 +1,5 @@
 import 'package:f1/models/project.dart';
+import 'package:f1/repositories/project_repository.dart';
 import 'package:flutter/material.dart';
 
 class EditProjectScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   // Controllers cho TextField
   late TextEditingController _nameController;
   late TextEditingController _descController;
+  double _progressPercentage = 00;
 
   // Biến lưu tạm ngày start/end
   late DateTime _startDate;
@@ -25,6 +27,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     // Khởi tạo giá trị ban đầu từ widget.project
     _nameController = TextEditingController(text: widget.project.name);
     _descController = TextEditingController(text: widget.project.description);
+    _progressPercentage = widget.project.progress * 100;
 
     _startDate = widget.project.startDate;
     _endDate = widget.project.endDate;
@@ -68,21 +71,38 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   // Hàm lưu/ cập nhật
   void _saveProject() {
     // Cập nhật lại thuộc tính project
-    final projectName = _nameController.text.trim();
-    final projectDesc = _descController.text.trim();
-    final startDate = _startDate;
-    final endDate = _endDate;
-
+    String projectName = _nameController.text.trim();
+    String projectDesc = _descController.text.trim();
+    DateTime startDate = _startDate;
+    DateTime endDate = _endDate;
+    double progress = _progressPercentage / 100;
+    String status = 'ongoing';
+    if (progress == 1.toDouble()) {
+      status = 'completed';
+    }
+    if (progress < 1 && endDate.isBefore(DateTime.now())) {
+      status = 'delayed';
+    }
     // TODO: Nếu bạn muốn cập nhật Firestore hay Provider,
     // bạn gọi hàm update ở đây, hoặc trả project về màn hình trước:
     // Example:
     // Provider.of<ProjectProvider>(context, listen: false).updateProject(widget.project);
-
+    updateProjectAttributes(
+      projectId: widget.project.idProject,
+      progress: progress,
+      name: projectName,
+      description: projectDesc,
+      startDate: startDate,
+      endDate: endDate,
+      status: status,
+    );
     Navigator.pop(context, {
       'name': projectName,
       'description': projectDesc,
       'startDate': startDate,
       'endDate': endDate,
+      'progress': progress,
+      'status': status,
     });
     // Hoặc chỉ pop nếu bạn đã xử lý cập nhật xong
   }
@@ -105,7 +125,10 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
               child: const Text('Hủy'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true), // Xác nhận xóa
+              onPressed: () {
+                deleteProject(projectId: widget.project.idProject);
+                Navigator.pop(ctx, true);
+              }, // Xác nhận xóa
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text('Xóa'),
             ),
@@ -173,6 +196,23 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                   child: const Text('Chọn ngày'),
                 ),
               ],
+            ),
+            // Thanh điều chỉnh tiến độ
+            Text(
+              'Tiến độ hiện tại : ${widget.project.progress * 100}%',
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+            Slider(
+              value: _progressPercentage,
+              min: 1,
+              max: 100,
+              divisions: 99, // để chia đều từ 1 -> 100
+              label: '${_progressPercentage.round()}%',
+              onChanged: (value) {
+                setState(() {
+                  _progressPercentage = value;
+                });
+              },
             ),
             const SizedBox(height: 24),
 

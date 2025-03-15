@@ -1,4 +1,5 @@
 import 'package:f1/models/feature.dart';
+import 'package:f1/screens/chat_room_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:f1/screens/projects_screen.dart';
 
@@ -20,7 +21,7 @@ class FeatureDetailPage extends StatelessWidget {
       case FeatureType.projectDocumentation:
         return Scaffold(body: Center(child: Text('Tính năng chưa khả dụng3')));
       case FeatureType.groupChat:
-        return Scaffold(body: Center(child: Text('Tính năng chưa khả dụng4')));
+        return Scaffold(body: ChatRoomsScreen());
       case FeatureType.statisticsReport:
         return Scaffold(body: Center(child: Text('Tính năng chưa khả dụng5')));
       case FeatureType.ganttChart:

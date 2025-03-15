@@ -1,6 +1,7 @@
 import 'package:f1/models/project.dart';
 import 'package:f1/screens/project_edit_screen.dart';
 import 'package:f1/screens/project_with_task_screen.dart';
+import 'package:f1/widgets/hover_copy_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:f1/shared/color_shared.dart';
@@ -111,7 +112,7 @@ Widget buildProjectCard(Project project, BuildContext context) {
                   Icon(Icons.people, size: 16, color: Colors.grey.shade600),
                   const SizedBox(width: 6),
                   Text(
-                    '${project.membersCount}',
+                    '${project.membersCount} - ${project.role}',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
                 ],
@@ -159,10 +160,7 @@ Widget buildProjectCard(Project project, BuildContext context) {
                         ),
                       ),
                     ),
-                  Text(
-                    'Role : ${project.role}',
-                    style: const TextStyle(fontSize: 10),
-                  ),
+                  HoverCopyText(text: project.idProject),
                 ],
               ),
               const SizedBox(height: 16),
@@ -239,7 +237,7 @@ Widget buildProjectCard(Project project, BuildContext context) {
                 children: [
                   OutlinedButton.icon(
                     onPressed: () async {
-                      print(project);
+                      print(project.members);
                       final updatedProject = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -247,11 +245,8 @@ Widget buildProjectCard(Project project, BuildContext context) {
                               (context) => EditProjectScreen(project: project),
                         ),
                       );
-                      // Sau khi màn hình EditProjectScreen đóng,
-                      // bạn có thể nhận lại "updatedProject" (nếu bạn Navigator.pop(project))
                       if (updatedProject != null) {
                         print('Dự án đã được cập nhật: ${updatedProject}');
-                        // TODO: Xử lý logic hiển thị, refresh, ...
                       }
                     },
                     icon: const Icon(Icons.edit_document, size: 16),
@@ -270,7 +265,10 @@ Widget buildProjectCard(Project project, BuildContext context) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TaskAssignmentScreen(),
+                          builder:
+                              (context) => TaskAssignmentScreen(
+                                idProject: project.idProject,
+                              ),
                         ),
                       );
                     },

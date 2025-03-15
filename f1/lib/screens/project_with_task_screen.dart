@@ -1,16 +1,35 @@
-import 'package:f1/models/task.dart';
+import 'package:f1/auth/tasks_notifier.dart';
+import 'package:f1/models/tasks.dart';
 import 'package:flutter/material.dart';
-import 'package:f1/seeds/list_tasks.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-class TaskAssignmentScreen extends StatelessWidget {
-  TaskAssignmentScreen({super.key});
+class TaskAssignmentScreen extends StatefulWidget {
+  final String idProject;
+  const TaskAssignmentScreen({super.key, required this.idProject});
 
+  @override
+  State<TaskAssignmentScreen> createState() => _TaskAssignmentScreen();
+}
+
+class _TaskAssignmentScreen extends State<TaskAssignmentScreen> {
   // Demo 5 task
-  final List<TaskItem> tasks = ListTask().getTasks();
+  //final List<TaskItem> tasks = ListTask().getTasks();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final projectProvider = Provider.of<TasksProvider>(
+        context,
+        listen: false,
+      );
+      projectProvider.getTask(widget.idProject);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final tasks = Provider.of<TasksProvider>(context).tasks;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Phân công nhiệm vụ'),
@@ -57,31 +76,17 @@ class TaskAssignmentScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskCard(TaskItem task, BuildContext context) {
+  Widget _buildTaskCard(TaskDTO task, BuildContext context) {
     final dateFormat = DateFormat('dd/MM/yyyy');
     final startDateStr = dateFormat.format(task.startDate);
-    final endDateStr = dateFormat.format(task.endDate);
+    final endDateStr = dateFormat.format(task.dueDate);
 
     // Tính số ngày còn lại (hoặc quá hạn)
-    final daysRemaining = task.endDate.difference(DateTime.now()).inDays;
+    final daysRemaining = task.dueDate.difference(DateTime.now()).inDays;
 
     // Xác định màu & text cho trạng thái
     Color statusColor;
     String statusText;
-    switch (task.status) {
-      case 'completed':
-        statusColor = Colors.green;
-        statusText = 'Hoàn thành';
-        break;
-      case 'delayed':
-        statusColor = Colors.orange;
-        statusText = 'Chậm tiến độ';
-        break;
-      case 'ongoing':
-      default:
-        statusColor = Colors.blue;
-        statusText = 'Đang thực hiện';
-    }
 
     return Card(
       elevation: 4,
@@ -114,25 +119,25 @@ class TaskAssignmentScreen extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // Badge trạng thái
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
+                //Badge trạng thái
+                // Container(
+                //   padding: const EdgeInsets.symmetric(
+                //     horizontal: 10,
+                //     vertical: 6,
+                //   ),
+                //   decoration: BoxDecoration(
+                //     color: statusColor,
+                //     borderRadius: BorderRadius.circular(12),
+                //   ),
+                //   child: Text(
+                //     statusText,
+                //     style: const TextStyle(
+                //       color: Colors.white,
+                //       fontWeight: FontWeight.bold,
+                //       fontSize: 12,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -149,7 +154,7 @@ class TaskAssignmentScreen extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Giao cho: ${task.assignedTo}',
+                        'Giao cho: ${task.displayName}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade800,
@@ -215,58 +220,6 @@ class TaskAssignmentScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-
-                // Tiến độ
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tiến độ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                    Text(
-                      '${(task.progress * 100).toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: _getProgressColor(task.progress),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Thanh tiến độ
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final maxWidth = constraints.maxWidth;
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Stack(
-                        children: [
-                          Container(
-                            height: 8,
-                            width: maxWidth,
-                            color: Colors.grey.shade200,
-                          ),
-                          Container(
-                            height: 8,
-                            width: maxWidth * task.progress,
-                            decoration: BoxDecoration(
-                              color: _getProgressColor(task.progress),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 16),
                 // Nút hành động
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -308,12 +261,5 @@ class TaskAssignmentScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  // Hàm trả về màu dựa vào tiến độ
-  Color _getProgressColor(double progress) {
-    if (progress < 0.3) return Colors.red;
-    if (progress < 0.7) return Colors.orange;
-    return Colors.green;
   }
 }
