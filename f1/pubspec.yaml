@@ -20,6 +20,13 @@ dependencies:
   google_sign_in: ^6.2.2
   google_fonts: ^4.0.3
   intl: ^0.18.0
+  flutter_native_splash: ^2.4.5
+  flutter_riverpod: ^2.6.1
+  flutter_dotenv: ^5.2.1
+  fluttertoast: ^8.2.12
+  flutter_gemini: ^3.0.0
+  image_picker: ^1.1.2
+  file_picker: ^9.1.0
 
 dev_dependencies:
   flutter_test:
@@ -32,3 +39,7 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - assets/
+    - .env
+    - assets/send.png
