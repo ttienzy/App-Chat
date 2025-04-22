@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:f1/models/task_parameters.dart';
 import 'package:f1/models/tasks.dart';
 
 Stream<List<TaskDTO>> getTasksByProjectId(String projectId) {
@@ -29,4 +30,57 @@ Stream<List<TaskDTO>> getTasksByProjectId(String projectId) {
 
         return tasks;
       });
+}
+
+Stream<List<String>> getEmailListStream() {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .snapshots()
+      .map(
+        (snapshot) =>
+            snapshot.docs.map((doc) => doc['email'] as String).toList(),
+      );
+}
+
+Future<String> getUserIdByEmail(String email) async {
+  final query =
+      await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1) // email phải là duy nhất
+          .get(); // chỉ truy vấn một lần
+
+  if (query.docs.isNotEmpty) {
+    // Nếu bạn muốn lấy đúng doc ID (là uid)
+    return query.docs.first.id;
+
+    // Nếu bạn lưu uid trong field 'uid', dùng:
+    // return query.docs.first['uid'] as String;
+  }
+
+  // Không tìm thấy user nào
+  throw Exception('Không tìm thấy user với email $email');
+}
+
+Future<DocumentReference> createTask(TaskParameters params) async {
+  // 1. Tạo DocumentReference tới user đã được phân công
+  final userRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(params.assignee);
+
+  // 2. Chuẩn bị map data để ghi vào Firestore
+  final taskData = <String, dynamic>{
+    'name_t': params.name,
+    'assign_at': userRef, // lưu đủ DocumentReference
+    'start_date': Timestamp.fromDate(params.startDate),
+    'due_date': Timestamp.fromDate(params.endDate),
+    'id_p': params.idProject,
+  };
+
+  // 3. Ghi vào collection "tasks"
+  final docRef = await FirebaseFirestore.instance
+      .collection('tasks')
+      .add(taskData);
+
+  return docRef; // trả về reference của document mới
 }

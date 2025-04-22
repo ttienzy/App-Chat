@@ -1,7 +1,7 @@
 import 'package:f1/auth/rooms_notifier.dart';
+import 'package:f1/auth/theme_notifier.dart';
 import 'package:f1/dialog/create_group_dialog.dart';
 import 'package:f1/screens/chat_room_detail_screen.dart';
-import 'package:f1/screens/chatbot_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,15 +16,7 @@ class ChatRoomsScreen extends StatefulWidget {
 class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
   final _user = FirebaseAuth.instance.currentUser;
   bool _isSearching = false;
-  int _selectedIndex = 0;
   final TextEditingController _searchController = TextEditingController();
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      print(_selectedIndex);
-    });
-  }
 
   @override
   void initState() {
@@ -38,27 +30,25 @@ class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
   @override
   Widget build(BuildContext context) {
     final roomProvider = Provider.of<RoomsProvider>(context);
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
 
     return Scaffold(
       // Màu nền nhạt cho toàn bộ trang
-      backgroundColor: Colors.deepPurple[50],
+      //backgroundColor: Colors.deepPurple[50],
       appBar: AppBar(
-        // Đặt nền trong suốt để hiển thị gradient từ flexibleSpace
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.deepPurple, Colors.purpleAccent],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        title: _buildAppBarTitle(),
+        backgroundColor: !isDarkMode ? Colors.white : const Color(0xFF1C2841),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.1),
+        leadingWidth: 0,
+        titleSpacing: 16,
+        title: _isSearching ? _buildSearchField() : _buildAppBarTitle(),
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            icon: Icon(
+              _isSearching ? Icons.close : Icons.search,
+              color: Colors.blueGrey[700],
+            ),
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching;
@@ -68,112 +58,79 @@ class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
                 }
               });
             },
+            splashRadius: 20,
           ),
-          IconButton(
-            icon: const Icon(Icons.group_add),
-            onPressed: () {
-              // Ví dụ: gọi hàm tạo nhóm chat
-              showCreateGroupDialog(context);
-            },
+          Container(
+            margin: EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: !isDarkMode ? Colors.blue[50] : const Color(0xFF1C2841),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.group_add_outlined, color: Colors.blue[700]),
+              onPressed: () {
+                // Ví dụ: gọi hàm tạo nhóm chat
+                showCreateGroupDialog(context);
+              },
+              tooltip: 'Tạo nhóm mới',
+              splashRadius: 20,
+            ),
           ),
+          SizedBox(width: 8),
         ],
       ),
 
-      body: _buildBody(roomProvider),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.deepPurple.withOpacity(0.2),
-              blurRadius: 8,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.0),
-            topRight: Radius.circular(20.0),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap:
-                (_selectedIndex) => {
-                  if (_selectedIndex == 1)
-                    {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatbotScreen(),
-                        ),
-                      ),
-                    },
-                },
-            items: <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(Icons.group_outlined),
-                activeIcon: Icon(Icons.group),
-                label: 'Contacts',
-                backgroundColor: Colors.white,
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.assistant_outlined),
-                activeIcon: Icon(Icons.assistant),
-                label: 'Chats',
-                backgroundColor: Colors.white,
-              ),
-            ],
-            elevation: 0,
-            selectedItemColor: Colors.deepPurple,
-            unselectedItemColor: Colors.grey.shade600,
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-            type: BottomNavigationBarType.shifting,
-            backgroundColor: Colors.white,
-            selectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontWeight: FontWeight.normal,
-              fontSize: 12,
-            ),
-          ),
-        ),
-      ),
+      // Thêm các phương thức hỗ trợ
+      body: _buildBody(roomProvider, isDarkMode),
     );
   }
 
   Widget _buildAppBarTitle() {
-    if (_isSearching) {
-      // Nếu đang ở chế độ search, hiển thị TextField
-      return TextField(
-        controller: _searchController,
-        autofocus: true,
-        decoration: const InputDecoration(
-          hintText: 'Tên phòng...',
-          border: InputBorder.none,
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.grey[200]!, width: 2),
+          ),
+          child: Icon(Icons.chat_rounded, color: Colors.blue[700], size: 22),
         ),
-        onChanged: (value) {
-          // Mỗi khi text thay đổi, bạn có thể gọi Provider để lọc danh sách
-          // final roomProvider = Provider.of<RoomsProvider>(context, listen: false);
-          // roomProvider.searchRooms(value);
-        },
-      );
-    } else {
-      // Nếu không search, hiển thị title bình thường
-      return const Text(
-        'Danh sách phòng',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      );
-    }
+        SizedBox(width: 12),
+        Text(
+          'Tin nhắn',
+          style: TextStyle(
+            color: Colors.blueGrey[800],
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _buildBody(RoomsProvider roomProviders) {
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      decoration: InputDecoration(
+        hintText: 'Tìm kiếm...',
+        hintStyle: TextStyle(color: Colors.grey),
+        border: InputBorder.none,
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 8),
+      ),
+      style: TextStyle(color: Colors.blueGrey[800], fontSize: 16),
+      onChanged: (value) {
+        // Xử lý tìm kiếm theo value
+      },
+    );
+  }
+
+  Widget _buildBody(RoomsProvider roomProviders, bool isDarkMode) {
     if (roomProviders.isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          color: Colors.deepPurple,
+          color: const Color.fromARGB(255, 35, 146, 219),
           strokeWidth: 3,
         ),
       );
@@ -232,13 +189,17 @@ class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
                         (context) => ChatRoomDetailScreen(
                           roomId: room.id,
                           roomName: room.name,
+                          memberCount: room.memberCount,
                         ),
                   ),
                 );
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color:
+                      !isDarkMode
+                          ? Colors.white
+                          : const Color.fromARGB(255, 44, 59, 93),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -260,8 +221,8 @@ class _ChatRoomsScreenState extends State<ChatRoomsScreen> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.deepPurple[300]!,
-                                Colors.deepPurple[700]!,
+                                const Color.fromARGB(255, 60, 100, 202)!,
+                                const Color.fromARGB(255, 47, 4, 241)!,
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,

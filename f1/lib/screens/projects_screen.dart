@@ -52,7 +52,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
                   },
                 )
                 : const Text('Quản lý dự án'),
-        backgroundColor: Colors.deepPurple,
+        //backgroundColor: Colors.deepPurple,
         elevation: 0,
         actions: [
           IconButton(
@@ -139,7 +139,7 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepPurple,
+        shape: const CircleBorder(),
         child: const Icon(Icons.add),
         onPressed: () async {
           final result = await Navigator.push(
@@ -183,7 +183,6 @@ class _ProjectManagementScreenState extends State<ProjectManagementScreen> {
       itemCount: projects.length,
       itemBuilder: (context, index) {
         final project = projects[index];
-        print(project.idProject);
         return buildProjectCard(project, context);
       },
     );

@@ -95,7 +95,7 @@ class _LoginFormState extends State<LoginForm> {
       handlePlatformException(e);
     } catch (e, stack) {
       debugPrint('Google Sign-In Error: $e\n$stack');
-      if (mounted) showErrorSnackbar('Lỗi hệ thống: ${e.toString()}');
+      if (mounted) showErrorSnackbar('Lỗi hệ thống9999: ${e.toString()}');
     }
   }
 
@@ -118,6 +118,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void showErrorSnackbar(String message) {
+    print(message);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));

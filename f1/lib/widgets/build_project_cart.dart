@@ -35,8 +35,9 @@ Widget buildProjectCard(Project project, BuildContext context) {
 
   return Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    elevation: 6,
-    shadowColor: Colors.black26,
+    color: Theme.of(context).scaffoldBackgroundColor,
+    elevation: 8,
+    shadowColor: const Color.fromARGB(66, 13, 68, 217),
     margin: const EdgeInsets.symmetric(vertical: 12.0),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -46,7 +47,10 @@ Widget buildProjectCard(Project project, BuildContext context) {
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.deepPurple, Colors.deepPurple.shade700],
+              colors: [
+                const Color.fromARGB(255, 108, 129, 172),
+                const Color.fromARGB(255, 43, 65, 135),
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -101,7 +105,7 @@ Widget buildProjectCard(Project project, BuildContext context) {
                   Icon(
                     Icons.calendar_today,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: Colors.grey.shade500,
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -112,7 +116,7 @@ Widget buildProjectCard(Project project, BuildContext context) {
                   Icon(Icons.people, size: 16, color: Colors.grey.shade600),
                   const SizedBox(width: 6),
                   Text(
-                    '${project.membersCount} - ${project.role}',
+                    '${project.membersCount} - ${project.role}(you)',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
                 ],
@@ -120,7 +124,10 @@ Widget buildProjectCard(Project project, BuildContext context) {
               const SizedBox(height: 12),
 
               // Mô tả
-              Text(project.description, style: const TextStyle(fontSize: 15)),
+              Text(
+                project.description,
+                style: const TextStyle(fontSize: 15, color: Colors.white),
+              ),
               const SizedBox(height: 16),
 
               // Hiển thị số ngày còn lại
@@ -237,7 +244,6 @@ Widget buildProjectCard(Project project, BuildContext context) {
                 children: [
                   OutlinedButton.icon(
                     onPressed: () async {
-                      print(project.members);
                       final updatedProject = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -249,7 +255,11 @@ Widget buildProjectCard(Project project, BuildContext context) {
                         print('Dự án đã được cập nhật: ${updatedProject}');
                       }
                     },
-                    icon: const Icon(Icons.edit_document, size: 16),
+                    icon: const Icon(
+                      Icons.edit_document,
+                      size: 16,
+                      color: Colors.blue,
+                    ),
                     label: const Text('Điều chỉnh'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.deepPurple,
@@ -268,16 +278,20 @@ Widget buildProjectCard(Project project, BuildContext context) {
                           builder:
                               (context) => TaskAssignmentScreen(
                                 idProject: project.idProject,
+                                projectName: project.name,
                               ),
                         ),
                       );
                     },
-                    icon: const Icon(Icons.visibility, size: 16),
+                    icon: const Icon(
+                      Icons.visibility,
+                      size: 16,
+                      color: Colors.blue,
+                    ),
                     label: const Text('Xem tiến độ'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.deepPurple,
+                      side: const BorderSide(color: Colors.deepPurple),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

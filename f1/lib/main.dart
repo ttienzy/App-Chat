@@ -1,7 +1,9 @@
 import 'package:f1/auth/messages_notifier.dart';
 import 'package:f1/auth/projects_notifier.dart';
 import 'package:f1/auth/rooms_notifier.dart';
+import 'package:f1/auth/task_progress_notifier.dart';
 import 'package:f1/auth/tasks_notifier.dart';
+import 'package:f1/auth/theme_notifier.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:f1/auth/auth_notifier.dart';
@@ -14,7 +16,8 @@ import 'package:flutter_gemini/flutter_gemini.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
-  String? apiKey = dotenv.env['GOOGLE_API_KEY'];
+  String? apiKey =
+      "AIzaSyBiEsZOO5idVocefRcCHpnJV_ur5Ws36ho"; //dotenv.env['GOOGLE_API_KEY'];
   Gemini.init(apiKey: apiKey ?? 'API not available');
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +37,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RoomsProvider()),
         ChangeNotifierProvider(create: (_) => MessagesProvider()),
         ChangeNotifierProvider(create: (_) => TasksProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ChangeNotifierProvider(create: (_) => ProjectProgressNotifier()),
       ],
       child: const MyApp(),
     ),
@@ -48,14 +53,20 @@ class MyApp extends StatelessWidget {
     final authNotifier = Provider.of<AuthNotifier>(context, listen: false);
     final router = configureRouter(authNotifier);
 
-    return MaterialApp.router(
-      routerConfig: router,
-      title: 'Chat App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto', // bạn có thể dùng Google Fonts hoặc font khác
-      ),
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
+        return MaterialApp.router(
+          routerConfig: router,
+          title: 'Chat App',
+          debugShowCheckedModeBanner: false,
+
+          // Áp dụng theme từ notifier
+          theme: themeNotifier.currentTheme,
+
+          themeMode:
+              themeNotifier.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        );
+      },
     );
   }
 }

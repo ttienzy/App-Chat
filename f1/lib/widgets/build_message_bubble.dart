@@ -2,7 +2,7 @@ import 'package:f1/models/groups.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-Widget buildMessageBubble(Message message, String userId) {
+Widget buildMessageBubble(Message message, String userId, bool isDarkMode) {
   var userInfo = message.user;
   var isMe = (userInfo?.uid == userId);
 
@@ -30,7 +30,7 @@ Widget buildMessageBubble(Message message, String userId) {
                             ? userInfo!.name!.substring(0, 1).toUpperCase()
                             : message.id.substring(0, 1).toUpperCase(),
                         style: const TextStyle(
-                          color: Color.fromARGB(255, 26, 77, 230),
+                          color: Color.fromARGB(94, 24, 18, 194),
                           fontSize: 14,
                         ),
                       ),
@@ -42,9 +42,9 @@ Widget buildMessageBubble(Message message, String userId) {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color:
-                  isMe
-                      ? const Color.fromARGB(255, 7, 194, 227)
-                      : Colors.grey[200],
+                  isMe && isDarkMode
+                      ? const Color.fromARGB(255, 79, 81, 82)
+                      : const Color.fromARGB(255, 234, 209, 209),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
@@ -59,7 +59,10 @@ Widget buildMessageBubble(Message message, String userId) {
                 Text(
                   message.content,
                   style: TextStyle(
-                    color: isMe ? Colors.white : Colors.black87,
+                    color:
+                        isMe && isDarkMode
+                            ? Colors.white
+                            : const Color.fromARGB(221, 18, 1, 1),
                     fontSize: 15,
                   ),
                 ),

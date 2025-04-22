@@ -48,12 +48,20 @@ class ChatRoom {
   final String id;
   final String name;
   final String desc;
-  ChatRoom({required this.id, required this.name, required this.desc});
+  final int memberCount;
+  ChatRoom({
+    required this.id,
+    required this.name,
+    required this.desc,
+    required this.memberCount,
+  });
   factory ChatRoom.fromMap(String docId, Map<String, dynamic> data) {
+    final members = (data['members'] as List<dynamic>?) ?? [];
     return ChatRoom(
       id: docId,
       name: data['name_r'] ?? '',
       desc: data['desc_r'] ?? '',
+      memberCount: members.length,
     );
   }
 }

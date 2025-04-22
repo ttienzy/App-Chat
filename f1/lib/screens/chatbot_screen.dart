@@ -1,12 +1,14 @@
 import 'dart:io';
 
+import 'package:f1/auth/theme_notifier.dart';
 import 'package:f1/models/message_chat.dart';
-import 'package:f1/screens/loading_indicator.dart';
+import 'package:f1/widgets/loading_indicator.dart';
 import 'package:f1/widgets/chatbot_message_bubble.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -120,6 +122,8 @@ class _ChatScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
     return Scaffold(
       appBar: AppBar(title: const Text('Flutter Gemini Chat')),
       body: Stack(
@@ -145,23 +149,66 @@ class _ChatScreenState extends State<ChatbotScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.attach_file),
-                      onPressed: _pickImage,
-                    ),
+                    // IconButton(
+                    //   icon: const Icon(Icons.attach_file),
+                    //   onPressed: _pickImage,
+                    // ),
                     Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        decoration: const InputDecoration(
-                          hintText: 'Write something...',
-                          border: OutlineInputBorder(),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color:
+                              !isDarkMode
+                                  ? Colors.white
+                                  : const Color.fromARGB(255, 52, 68, 101),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.grey[300]!),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 2,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
-                        onSubmitted: _sendTextMessage,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _textController,
+                                decoration: InputDecoration(
+                                  hintText: 'Nhập tin nhắn...',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 14,
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: 20,
+                                  ),
+                                ),
+                                maxLines: null,
+                                textCapitalization:
+                                    TextCapitalization.sentences,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
+                                onSubmitted: _sendTextMessage,
+                              ),
+                            ),
+                            // Nút đính kèm tệp tin
+                            IconButton(
+                              icon: Icon(
+                                Icons.attach_file_rounded,
+                                color: Colors.blue[700],
+                                size: 22,
+                              ),
+                              splashRadius: 20,
+                              onPressed: _pickImage,
+                            ),
+                            SizedBox(width: 2),
+                          ],
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.image),
-                      onPressed: _pickImage,
                     ),
                     IconButton(
                       icon: const Icon(Icons.send),

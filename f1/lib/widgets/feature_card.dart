@@ -40,7 +40,10 @@ class FeatureCard extends StatelessWidget {
                       end: Alignment.bottomRight,
                     )
                     : const LinearGradient(
-                      colors: [Colors.white, Color(0xFFF8F8F8)],
+                      colors: [
+                        Colors.white,
+                        Color.fromARGB(255, 211, 128, 128),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -49,7 +52,11 @@ class FeatureCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(feature.icon, size: 50, color: Colors.deepPurple),
+              Icon(
+                feature.icon,
+                size: 50,
+                color: const Color.fromARGB(255, 44, 8, 225),
+              ),
               const SizedBox(height: 12),
               Text(
                 feature.title,
@@ -57,7 +64,7 @@ class FeatureCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: Color.fromARGB(221, 85, 146, 157),
                 ),
               ),
             ],

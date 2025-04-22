@@ -1,4 +1,5 @@
 import 'package:f1/auth/messages_notifier.dart';
+import 'package:f1/auth/theme_notifier.dart';
 import 'package:f1/services/chat_services.dart';
 import 'package:f1/widgets/build_message_bubble.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,10 +11,11 @@ class ChatRoomDetailScreen extends StatefulWidget {
     super.key,
     required this.roomId,
     required this.roomName,
+    required this.memberCount,
   });
   final String roomId;
   final String roomName;
-
+  final int memberCount;
   @override
   State<ChatRoomDetailScreen> createState() => _ChatRoomDetailScreenState();
 }
@@ -38,37 +40,58 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final messagesProvider = Provider.of<MessagesProvider>(context);
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final isDarkMode = themeNotifier.isDarkMode;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.roomName,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.white,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.roomName,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              '${widget.memberCount ?? 0} thành viên', // Hiển thị số lượng thành viên
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white70,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.indigo[600], // Màu nền sang trọng hơn
+        elevation: 2,
+        shadowColor: Colors.black38,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
           ),
         ),
-        backgroundColor: Colors.blueAccent, // Màu nền AppBar
-        elevation: 4,
-        shadowColor: Colors.black45,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          splashRadius: 24,
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         actions: [
+          // Menu tùy chọn
           PopupMenuButton<String>(
-            icon: Icon(
-              Icons.more_vert,
-              color: Colors.white,
-              size: 28,
-            ), // Icon có màu trắng
-            color: Colors.white, // Màu nền của menu
+            icon: Icon(Icons.more_vert, color: Colors.white, size: 24),
+            color: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12), // Bo góc menu
+              borderRadius: BorderRadius.circular(12),
             ),
-            elevation: 8, // Hiệu ứng đổ bóng
+            elevation: 8,
+            offset: Offset(0, 40),
             onSelected: (value) {
               switch (value) {
                 case 'add_member':
@@ -80,6 +103,9 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
                 case 'leave_group':
                   _leaveGroup();
                   break;
+                case 'change_theme':
+                  // Thêm chức năng đổi theme
+                  break;
               }
             },
             itemBuilder:
@@ -89,11 +115,18 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          Icons.person_add,
-                          color: Colors.blueAccent,
-                        ), // Icon
-                        SizedBox(width: 10),
-                        Text('Thêm thành viên', style: TextStyle(fontSize: 16)),
+                          Icons.person_add_alt_1,
+                          color: Colors.indigo,
+                          size: 20,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Thêm thành viên',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -101,28 +134,67 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
                     value: 'remove_member',
                     child: Row(
                       children: [
-                        Icon(Icons.person_remove, color: Colors.redAccent),
-                        SizedBox(width: 10),
-                        Text('Xóa thành viên', style: TextStyle(fontSize: 16)),
+                        Icon(
+                          Icons.person_remove,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Xóa thành viên',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   PopupMenuItem(
+                    value: 'change_theme',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.color_lens_outlined,
+                          color: Colors.amber[700],
+                          size: 20,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Đổi chủ đề',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuDivider(),
+                  PopupMenuItem(
                     value: 'leave_group',
                     child: Row(
                       children: [
-                        Icon(Icons.exit_to_app, color: Colors.orangeAccent),
-                        SizedBox(width: 10),
-                        Text('Rời nhóm', style: TextStyle(fontSize: 16)),
+                        Icon(Icons.logout, color: Colors.grey[700], size: 20),
+                        SizedBox(width: 12),
+                        Text(
+                          'Rời nhóm',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[800],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
           ),
+          SizedBox(width: 4),
         ],
       ),
 
-      body: _buildBody(messagesProvider),
+      body: _buildBody(messagesProvider, isDarkMode),
     );
   }
 
@@ -141,7 +213,7 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
     print("Rời nhóm");
   }
 
-  Widget _buildBody(MessagesProvider messagesProviders) {
+  Widget _buildBody(MessagesProvider messagesProviders, bool isDarkMode) {
     if (messagesProviders.isLoading) {
       // Hiển thị vòng xoay khi đang tải
       return Center(child: CircularProgressIndicator());
@@ -160,20 +232,23 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
             padding: const EdgeInsets.all(16),
             itemCount: messagesList.length,
             itemBuilder:
-                (context, index) =>
-                    buildMessageBubble(messagesList[index], _user!.uid),
+                (context, index) => buildMessageBubble(
+                  messagesList[index],
+                  _user!.uid,
+                  isDarkMode,
+                ),
           ),
         ),
-        _buildMessageInput(),
+        _buildMessageInput(isDarkMode),
       ],
     );
   }
 
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: !isDarkMode ? Colors.white : const Color(0xFF1C2841),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -194,7 +269,10 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor:
+                    !isDarkMode
+                        ? Colors.white
+                        : const Color.fromARGB(255, 47, 62, 95),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 14,
@@ -205,7 +283,10 @@ class _ChatRoomDetailScreenState extends State<ChatRoomDetailScreen> {
           const SizedBox(width: 8),
           Container(
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 221, 215, 215),
+              color:
+                  !isDarkMode
+                      ? const Color.fromARGB(255, 247, 245, 245)
+                      : const Color.fromARGB(255, 47, 62, 95),
               shape: BoxShape.circle,
             ),
             child: IconButton(
