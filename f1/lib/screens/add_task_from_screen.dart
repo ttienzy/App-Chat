@@ -17,7 +17,7 @@ class _TaskFormScreenState extends State<AddTaskFormScreen> {
   final TextEditingController _assigneeController = TextEditingController();
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
-
+  final TextEditingController _progressController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -27,6 +27,7 @@ class _TaskFormScreenState extends State<AddTaskFormScreen> {
     _assigneeController.dispose();
     _startDateController.dispose();
     _endDateController.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -77,6 +78,7 @@ class _TaskFormScreenState extends State<AddTaskFormScreen> {
         startDate: _startDate!,
         endDate: _endDate!,
         idProject: widget.idProject,
+        status: 'ongoing',
       );
       print(newTask);
       await createTask(newTask);

@@ -155,42 +155,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             shape: BoxShape.circle,
                           ),
                           margin: EdgeInsets.only(left: 8.0),
-                          child: Stack(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.notifications_outlined,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  // Mở trang thông báo
-                                },
-                                tooltip: 'Thông báo',
-                              ),
-                              Positioned(
-                                right: 6,
-                                top: 6,
-                                child: Container(
-                                  padding: EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: BoxConstraints(
-                                    minWidth: 12,
-                                    minHeight: 12,
-                                  ),
-                                  child: Text(
-                                    '3',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
+                          child: Stack(children: [
                             ],
                           ),
                         ),

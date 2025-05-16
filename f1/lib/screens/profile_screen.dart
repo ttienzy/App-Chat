@@ -1,4 +1,5 @@
 import 'package:f1/auth/theme_notifier.dart';
+import 'package:f1/shared/convert_timestamp_to_date.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,132 @@ class _ProfilePageState extends State<ProfilePage> {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     final isDarkMode = themeNotifier.isDarkMode;
     final theme = Theme.of(context);
+    //Timestamp timestamp = Timestamp(widget._user!.);
+
+    String _currentPosition = 'Flutter Developer';
+    String _currentAddress = 'Hà Nội, Việt Nam';
+    final String joinDate = formatAuthTime(
+      widget._user!.metadata.creationTime.toString(),
+    ); // Giả sử ngày tham gia không đổi
+    void showUpdateInfoDialog(BuildContext context) {
+      final positionController = TextEditingController(text: _currentPosition);
+      final addressController = TextEditingController(text: _currentAddress);
+
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Cập nhật thông tin'),
+            content: SingleChildScrollView(
+              // Dùng SingleChildScrollView nếu nội dung có thể dài
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    controller: positionController,
+                    decoration: const InputDecoration(labelText: 'Chức vụ mới'),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: addressController,
+                    decoration: const InputDecoration(labelText: 'Địa chỉ mới'),
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Hủy'),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+              ElevatedButton(
+                child: const Text('Lưu'),
+                onPressed: () {
+                  print('Trước khi cập nhật:');
+                  print('positionController.text: ${positionController.text}');
+                  print('_currentPosition (state): $_currentPosition');
+                  print('addressController.text: ${addressController.text}');
+                  print('_currentAddress (state): $_currentAddress');
+                  // ----- DEBUGGING END -----
+
+                  // Đảm bảo setState được gọi và gán giá trị đúng
+                  setState(() {
+                    _currentPosition = positionController.text;
+                    _currentAddress = addressController.text;
+
+                    // ----- DEBUGGING START -----
+                    print('Bên trong setState:');
+                    print('_currentPosition (state): $_currentPosition');
+                    print('_currentAddress (state): $_currentAddress');
+                    // ----- DEBUGGING END -----
+                  });
+
+                  // ----- DEBUGGING START -----
+                  print('Sau khi setState được gọi:');
+                  print('_currentPosition (state): $_currentPosition');
+                  print('_currentAddress (state): $_currentAddress');
+                  // ----- DEBUGGING END -----
+
+                  Navigator.of(dialogContext).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    Widget buildUserInfoSection(BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          elevation: 2, // Thêm chút đổ bóng cho đẹp
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Căn lề trái cho đẹp hơn
+              children: [
+                _buildInfoRow(
+                  Icons.work,
+                  'Chức vụ',
+                  _currentPosition,
+                ), // Sử dụng state
+                const Divider(),
+                _buildInfoRow(
+                  Icons.location_on,
+                  'Địa chỉ',
+                  _currentAddress,
+                ), // Sử dụng state
+                const Divider(),
+                _buildInfoRow(Icons.calendar_today, 'Tham gia', joinDate),
+                const SizedBox(height: 20), // Khoảng cách trước nút
+                // 3. Thêm nút "Cập nhật"
+                Center(
+                  // Căn giữa nút
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Cập nhật thông tin'),
+                    onPressed: () {
+                      showUpdateInfoDialog(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       //backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[100],
@@ -32,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           children: [
             _buildProfileHeader(theme),
-            _buildUserInfoSection(context),
+            buildUserInfoSection(context),
             _buildSettingsSection(context, themeNotifier),
           ],
         ),
@@ -85,27 +212,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildUserInfoSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Card(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              _buildInfoRow(Icons.work, 'Chức vụ', 'Flutter Developer'),
-              const Divider(),
-              _buildInfoRow(Icons.location_on, 'Địa chỉ', 'Hà Nội, Việt Nam'),
-              const Divider(),
-              _buildInfoRow(Icons.calendar_today, 'Tham gia', '01/01/2023'),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -170,32 +276,28 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Xác nhận đăng xuất'),
-            content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Hủy'),
+void _showLogoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder:
+        (context) => AlertDialog(
+          title: const Text('Xác nhận đăng xuất'),
+          content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                'Đăng xuất',
+                style: TextStyle(color: Colors.red),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Thêm logic đăng xuất ở đây
-                  Navigator.pop(context); // Quay lại màn hình trước
-                },
-                child: const Text(
-                  'Đăng xuất',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
+            ),
+          ],
+        ),
+  );
 }

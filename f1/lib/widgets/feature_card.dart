@@ -11,9 +11,9 @@ class FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      elevation: 6,
+      elevation: 2,
       borderRadius: BorderRadius.circular(20),
-      shadowColor: Colors.deepPurple.withAlpha((0.3 * 255).toInt()),
+      shadowColor: Colors.deepPurple.withAlpha((0.9 * 255).toInt()),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {

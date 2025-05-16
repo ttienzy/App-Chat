@@ -30,6 +30,7 @@ class _TaskAssignmentScreen extends State<TaskAssignmentScreen> {
         context,
         listen: false,
       );
+      Provider.of<TasksProvider>(context, listen: false).initDeleteStream();
       projectProvider.getTask(widget.idProject);
     });
   }
@@ -205,6 +206,30 @@ class _TaskAssignmentScreen extends State<TaskAssignmentScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                // Khoảng cách nhỏ giữa Text và Icon (tùy chọn)
+                const SizedBox(width: 8.0),
+                // Icon hòm rác
+                IconButton(
+                  icon: const Icon(Icons.delete_outline), // hoặc Icons.delete
+                  color: Colors.white, // Hoặc màu bạn muốn, ví dụ Colors.red
+                  iconSize: 20, // Điều chỉnh kích thước nếu cần
+                  // IconButton có padding mặc định, nếu muốn icon sát hơn, bạn có thể điều chỉnh:
+                  padding: EdgeInsets.zero, // Loại bỏ padding mặc định
+                  constraints:
+                      const BoxConstraints(), // Loại bỏ constraints mặc định để padding: EdgeInsets.zero có hiệu lực hoàn toàn
+                  tooltip:
+                      'Xóa task', // Văn bản hiển thị khi giữ chuột lâu (trên web/desktop)
+                  onPressed: () {
+                    Provider.of<TasksProvider>(
+                      context,
+                      listen: false,
+                    ).deleteTask(task.taskName);
+                    // Xử lý logic xóa task ở đây
+                    print('Xóa task: ${task.taskName}');
+                    // Ví dụ: bạn có thể gọi một hàm để hiển thị dialog xác nhận xóa
+                    // showDeleteConfirmationDialog(context, task);
+                  },
+                ),
               ],
             ),
           ),
@@ -301,42 +326,67 @@ class _TaskAssignmentScreen extends State<TaskAssignmentScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        // Xử lý khi nhấn nút "Chưa hoàn thành"
+                    Builder(
+                      builder: (context) {
+                        final tasksProvider = Provider.of<TasksProvider>(
+                          context,
+                          listen: false,
+                        );
+                        if (task.status == 'completed') {
+                          return OutlinedButton.icon(
+                            onPressed: () {
+                              tasksProvider.triggerStatusUpdate(
+                                task.id,
+                                'ongoing', // Chuyển về trạng thái 'ongoing'
+                              );
+                            },
+                            icon: const Icon(
+                              Icons
+                                  .replay_circle_filled, // Icon cho hành động "mở lại"
+                              size: 16,
+                              color: Colors.orange,
+                            ),
+                            label: const Text('Mở lại task'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ), // Tùy chỉnh padding
+                            ),
+                          );
+                        } else {
+                          return ElevatedButton.icon(
+                            onPressed: () {
+                              tasksProvider.triggerStatusUpdate(
+                                task.id,
+                                'completed', // Chuyển sang trạng thái 'completed'
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.check_circle,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            label: const Text('Đã hoàn thành'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ), // Tùy chỉnh padding
+                            ),
+                          );
+                        }
                       },
-                      icon: const Icon(
-                        Icons.pending_actions,
-                        size: 16,
-                        color: Colors.orange,
-                      ),
-                      label: const Text('Chưa hoàn thành'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                        side: const BorderSide(color: Colors.orange),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Xử lý khi nhấn nút "Đã hoàn thành"
-                      },
-                      icon: const Icon(
-                        Icons.check_circle,
-                        size: 16,
-                        color: Colors.white,
-                      ),
-                      label: const Text('Đã hoàn thành'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
                     ),
                   ],
                 ),

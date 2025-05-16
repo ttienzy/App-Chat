@@ -243,27 +243,56 @@ Widget buildProjectCard(Project project, BuildContext context) {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () async {
-                      final updatedProject = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => EditProjectScreen(project: project),
-                        ),
-                      );
-                      if (updatedProject != null) {
-                        print('Dự án đã được cập nhật: ${updatedProject}');
-                      }
-                    },
-                    icon: const Icon(
+                    onPressed:
+                        project.role ==
+                                'leader' // Điều kiện kiểm tra ở đây
+                            ? () async {
+                              // Nếu là 'leader', gán hàm xử lý
+                              final updatedProject = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          EditProjectScreen(project: project),
+                                ),
+                              );
+                              if (updatedProject != null) {
+                                print(
+                                  'Dự án đã được cập nhật: ${updatedProject}',
+                                );
+                                // Bạn có thể muốn cập nhật UI ở đây nếu cần
+                                // setState(() { ... });
+                              }
+                            }
+                            : null, // Nếu không phải 'leader', gán null để disable button
+                    icon: Icon(
                       Icons.edit_document,
                       size: 16,
-                      color: Colors.blue,
+                      // Tùy chọn: thay đổi màu icon khi bị disable để rõ ràng hơn
+                      color:
+                          project.role == 'leader' ? Colors.blue : Colors.grey,
                     ),
-                    label: const Text('Điều chỉnh'),
+                    label: Text(
+                      'Điều chỉnh',
+                      // Tùy chọn: thay đổi màu text khi bị disable
+                      style: TextStyle(
+                        color:
+                            project.role == 'leader'
+                                ? Colors.deepPurple
+                                : Colors.grey,
+                      ),
+                    ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.deepPurple,
-                      side: const BorderSide(color: Colors.deepPurple),
+                      // foregroundColor sẽ được Flutter tự động xử lý khi button bị disable (thường là màu xám)
+                      // Tuy nhiên, nếu bạn muốn kiểm soát hoàn toàn, bạn có thể đặt điều kiện ở đây:
+                      // foregroundColor: project.role == 'leader' ? Colors.deepPurple : Colors.grey,
+                      side: BorderSide(
+                        // Tùy chọn: thay đổi màu viền khi bị disable
+                        color:
+                            project.role == 'leader'
+                                ? Colors.deepPurple
+                                : Colors.grey,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

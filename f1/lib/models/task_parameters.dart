@@ -4,6 +4,7 @@ class TaskParameters {
   DateTime startDate;
   DateTime endDate;
   String idProject;
+  String status = 'ongoing';
 
   TaskParameters({
     required this.name,
@@ -11,5 +12,6 @@ class TaskParameters {
     required this.startDate,
     required this.endDate,
     required this.idProject,
+    this.status = 'ongoing',
   });
 }

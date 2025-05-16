@@ -75,6 +75,7 @@ Future<DocumentReference> createTask(TaskParameters params) async {
     'start_date': Timestamp.fromDate(params.startDate),
     'due_date': Timestamp.fromDate(params.endDate),
     'id_p': params.idProject,
+    'status': params.status,
   };
 
   // 3. Ghi vào collection "tasks"
@@ -83,4 +84,27 @@ Future<DocumentReference> createTask(TaskParameters params) async {
       .add(taskData);
 
   return docRef; // trả về reference của document mới
+}
+
+void deleteTaskByName(String name) {
+  // Truy vấn stream từ collection 'task2' với điều kiện name_t = 'bd'
+  FirebaseFirestore.instance
+      .collection('tasks')
+      .where('name_t', isEqualTo: name)
+      .snapshots()
+      .listen((querySnapshot) {
+        // Xử lý từng document trong kết quả truy vấn
+        for (final doc in querySnapshot.docs) {
+          doc.reference
+              .delete()
+              .then((_) => print('Document ${doc.id} deleted'))
+              .catchError((error) => print('Delete failed: $error'));
+        }
+      });
+}
+
+Future<void> updateTaskStatus(String taskId, String newStatus) async {
+  await FirebaseFirestore.instance.collection('tasks').doc(taskId).update({
+    'status': newStatus,
+  });
 }

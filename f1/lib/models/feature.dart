@@ -19,11 +19,6 @@ class ListFeatures {
         icon: Icons.folder_open,
       ),
       Feature(
-        type: FeatureType.taskAssignment,
-        title: 'Phân công nhiệm vụ',
-        icon: Icons.assignment_ind,
-      ),
-      Feature(
         type: FeatureType.progressTracking,
         title: 'Theo dõi tiến độ',
         icon: Icons.track_changes,
